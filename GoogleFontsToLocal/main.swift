@@ -10,8 +10,20 @@ struct Font {
 
 let arguments = CommandLine.arguments
 
+let command = arguments[0]
+
+// Check that we have the correct number of arguments or --help
+guard arguments.count == 2 else {
+    printHelp()
+    exit(1)
+}
+
 let cssPath = arguments[1]
 
+if cssPath == "--help" || cssPath == "-h" {
+    printHelp()
+    exit(0)
+}
 
 // Read the contents of the file into a string
 guard let fileContents = try? String(contentsOfFile: cssPath) else {
@@ -73,7 +85,7 @@ for cssText in cssTextArray {
     // get extension from url
     let ext = thisFont.source.components(separatedBy: ".").last!
 
-    let fontInfo = "\(thisFont.family)-\(thisFont.weight)-\(thisFont.style)"
+    let fontInfo = familyFile(font: thisFont)
 
     let url = "\(fontInfo).\(ext)"
 
@@ -90,11 +102,17 @@ print(output)
 print("/* Curl command to download fonts")
 
 for font in fontList {
-    // get extension from url
-    let ext = font.url.components(separatedBy: ".").last!
-
-    print("curl \(font.url) -o \(font.family)-\(font.weight)-\(font.style).\(ext)")
+    print("curl \(font.source) -o \(font.url)")
 }
 
 print("*/")
+
+func familyFile(font: Font) -> String {
+    let familyNameWithoutSpaces = font.family.replacingOccurrences(of: " ", with: "-")
+    return "\(familyNameWithoutSpaces)-\(font.weight)-\(font.style)"
+}
+
+func printHelp() {
+    print("Usage: \(command) <css file>")
+}
 
